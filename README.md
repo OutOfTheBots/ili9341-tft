@@ -12,3 +12,7 @@ The posistionon x=0 and y=0 is has been setup to be at the bottom left of the sc
 
 This project so far has been developed on the ESP8266 using Micro-Python
 There is much futher development yet to come and plan to make a high level GUI user interface for the ESP32
+
+When calling the load_image(image_file, chunk_size=1024) you can specify the chunk size that it reads from file and dumps
+to the screen. The larger the chunk size the better the speed of transfer but the more the cost in RAM. 1kb is default
+value due to some boards being very limits with aviable RAM.
