@@ -1,4 +1,6 @@
 # ili9341-tft
+This brach is for updates to be developed and current up date has basic scale-able text feature
+
 Micro-Python libiary for the ili9341
 
 Currently this driver is ver basic and will only upload 320x240 images that have been preprocessed into 16bit 5R6G5B BMP format.
