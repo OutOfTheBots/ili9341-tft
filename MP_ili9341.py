@@ -98,12 +98,27 @@ class ili9341():
       data = BMP_file.read(chunk_size)
     BMP_file.close()
 
+  def restore_image(self, box, image_file):     
+	chunk_size = box[2] * 2     
+	self.set_window(box[0], box[1], box[2], box[3])    
+	BMP_file = open(image_file , "rb")     
+	self.dc.value(1)     
+	self.cs.value(0)
+    
+	for looping in range (box[3]): 	  
+	  BMP_file.seek(54 + box[0] * 2 + (box[1] + looping) * 320*2, 0)      
+	  data = BMP_file.read(chunk_size)      
+	  self.hspi.write(data)   
+	
+	BMP_file.close()
+	self.cs.value(1)
+	
 
-
-
-  def put_text(self, xpos, ypos, scale, text_graphics): 	
-    text_file = open ("text.fnt", "rb")	
-    for counter, charter in enumerate(text_graphics):	
+  def put_text(self, xpos, ypos, scale, text_graphics):     
+	text_file = open ("text.fnt", "rb")    
+	color = (b'\x00\x00', b'\xff\xff')
+	
+	for counter, charter in enumerate(text_graphics):	
 	  letter = []
 	  text_file.seek((ord(charter)-32)*8,0)
 	  for i in range(8) : 
@@ -111,22 +126,20 @@ class ili9341():
 	    letter.append(te[0])
     
 	  self.set_window(xpos + (8*scale* counter), ypos, 8* scale, 8 * scale)	
-	  color = (b'\x00\x00', b'\xff\xff')
+	  
 	  self.dc.value(1)    
 	  self.cs.value(0)
 
 	  for lines in reversed(letter): 	  
 	    for times in range(scale):        
 		  mask = 0b10000000        
-		  for bits in range(8) :           
-		    if mask & lines > 0 : pos =1           
-		    else : pos = 0          
-
-		    self.hspi.write(color[pos]*scale)            
-		    mask = mask >> 1		  
-		  
-    self.cs.value(1)
-    text_file.close()
+		  for bits in range(8) :		    
+			if mask & lines > 0 : pos =1 		    
+			else : pos = 0 		    
+			self.hspi.write(color[pos]*scale) 		    
+			mask = mask >> 1
 	
-	
+	self.cs.value(1)
+	text_file.close()
+	return (xpos, ypos, len(text_graphics) * 8 * scale, 8 * scale)
 	
