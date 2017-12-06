@@ -112,11 +112,16 @@ class ili9341():
 	
 	BMP_file.close()
 	self.cs.value(1)
-	
 
-  def put_text(self, xpos, ypos, scale, text_graphics):     
-	text_file = open ("text.fnt", "rb")    
-	color = (b'\x00\x00', b'\xff\xff')
+
+  def bit24_to_bit16(self, colour):
+    return  (colour[2] & 0xf8) << 8 | (colour[1] & 0xfc) << 3 | colour[0] >> 3      
+
+  def put_text(self, xpos, ypos, scale, text_graphics, background_colour, foreground_colour):     
+	text_file = open ("text.fnt", "rb")  
+	bk = self.bit24_to_bit16(background_colour)
+	fg = self.bit24_to_bit16(foreground_colour)
+	color = (ustruct.pack('>H',bk), ustruct.pack('>H',fg))
 	
 	for counter, charter in enumerate(text_graphics):	
 	  letter = []
