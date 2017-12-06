@@ -1,5 +1,4 @@
 # ili9341-tft
-This brach is for updates to be developed and current up date has basic scale-able text feature
 
 Micro-Python libiary for the ili9341
 
@@ -18,3 +17,7 @@ There is much futher development yet to come and plan to make a high level GUI u
 When calling the load_image(image_file, chunk_size=1024) you can specify the chunk size that it reads from file and dumps
 to the screen. The larger the chunk size the better the speed of transfer but the more the cost in RAM. 1kb is default
 value due to some boards being very limits with aviable RAM.
+
+Latest updates have added a scalable text putter and remover. You can add text on top of images and scale the text to any size and 
+choose any colour for foregraound or back ground. There is also a text remover that allows you to remove the text and restore 
+the image that was behind the text.
