@@ -27,14 +27,10 @@
 Micro-Python class for ili9341 TFT.
 version 5/12/2017
 This is very first version without any error checking for the purposes of just 
-loading a full screen image in 320x200. The image will need to in 16bit 5R,6G,5B 
-BMP format. please note that the screen will initize in 320x240 mode not the usual 
-240x320 mode tradationally used by ili9341 and also position x=0, y=0 will be at 
-bottom left of screen to line up with the BMP format for direct dump from image file 
-to screen memory without needing processing and also the screen will be setup in 
-RBG format not the usally BGR fromat tradationally used by the ili9341
-and not the usual 16BGR format used by most graphic libiaries again to line upwith
-a unprocessed direct dump
+loading a full screen image in 320x200. The image will need to have been rotated
+90 degress CW and in 16bit BMP format using 5R,6G,5B format
+please note that during the init of the screen it will be put into 16RBG format
+and not the usual 16BGR format used by most graphic libiaries
 '''
 
 from machine import Pin, SPI
@@ -102,3 +98,53 @@ class ili9341():
       data = BMP_file.read(chunk_size)
     BMP_file.close()
 
+  def restore_image(self, box, image_file):     
+	chunk_size = box[2] * 2     
+	self.set_window(box[0], box[1], box[2], box[3])    
+	BMP_file = open(image_file , "rb")     
+	self.dc.value(1)     
+	self.cs.value(0)
+    
+	for looping in range (box[3]): 	  
+	  BMP_file.seek(54 + box[0] * 2 + (box[1] + looping) * 320*2, 0)      
+	  data = BMP_file.read(chunk_size)      
+	  self.hspi.write(data)   
+	
+	BMP_file.close()
+	self.cs.value(1)
+
+
+  def bit24_to_bit16(self, colour):
+    return  (colour[2] & 0xf8) << 8 | (colour[1] & 0xfc) << 3 | colour[0] >> 3      
+
+  def put_text(self, xpos, ypos, scale, text_graphics, background_colour, foreground_colour):     
+	text_file = open ("text.fnt", "rb")  
+	bk = self.bit24_to_bit16(background_colour)
+	fg = self.bit24_to_bit16(foreground_colour)
+	color = (ustruct.pack('>H',bk), ustruct.pack('>H',fg))
+	
+	for counter, charter in enumerate(text_graphics):	
+	  letter = []
+	  text_file.seek((ord(charter)-32)*8,0)
+	  for i in range(8) : 
+	    te = ustruct.unpack('B' ,text_file.read(1))
+	    letter.append(te[0])
+    
+	  self.set_window(xpos + (8*scale* counter), ypos, 8* scale, 8 * scale)	
+	  
+	  self.dc.value(1)    
+	  self.cs.value(0)
+
+	  for lines in reversed(letter): 	  
+	    for times in range(scale):        
+		  mask = 0b10000000        
+		  for bits in range(8) :		    
+			if mask & lines > 0 : pos =1 		    
+			else : pos = 0 		    
+			self.hspi.write(color[pos]*scale) 		    
+			mask = mask >> 1
+	
+	self.cs.value(1)
+	text_file.close()
+	return (xpos, ypos, len(text_graphics) * 8 * scale, 8 * scale)
+	
